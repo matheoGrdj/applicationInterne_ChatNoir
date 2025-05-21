@@ -13,20 +13,21 @@ export default defineEventHandler(async (event) => {
 
         const file = formData[0]
         const fileName = `IMG_${Date.now()}.${file.filename.split('.').pop()}`
-        const filePath = join('public', 'images', fileName)
+        const filePath = join(process.cwd(), 'public', 'images', fileName)
 
         // Sauvegarder le fichier
         await writeFile(filePath, file.data)
 
         // Ajouter l'entrée dans le JSON
-        const images = JSON.parse(await readFile('/data/images.json', 'utf-8'))
+        const jsonPath = join(process.cwd(), 'public', 'data', 'images.json')
+        const images = JSON.parse(await readFile(jsonPath, 'utf-8'))
         const newImage = {
             id: `img-${Date.now()}`,
             url: `/images/${fileName}`,
             remarque: ''
         }
         images.push(newImage)
-        await writeFile('/data/images.json', JSON.stringify(images, null, 2))
+        await writeFile(jsonPath, JSON.stringify(images, null, 2))
 
         return {
             success: true,

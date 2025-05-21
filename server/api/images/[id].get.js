@@ -1,12 +1,12 @@
 import { readFile } from 'fs/promises'
+import { join } from 'path'
 
 export default defineEventHandler(async (event) => {
     try {
         // Récupérer l'ID depuis les paramètres de route
         const id = event.context.params.id
-
-        // Lire le fichier JSON
-        const images = JSON.parse(await readFile('/data/images.json', 'utf-8'))
+        const filePath = join(process.cwd(), 'public', 'data', 'images.json')
+        const images = JSON.parse(await readFile(filePath, 'utf-8'))
 
         // Trouver l'image correspondante
         const image = images.find(img => img.id === id)

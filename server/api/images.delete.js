@@ -5,7 +5,8 @@ import { existsSync } from 'fs'
 export default defineEventHandler(async (event) => {
     try {
         const body = await readBody(event)
-        const images = JSON.parse(await readFile('/data/images.json', 'utf-8'))
+        const jsonFilePath = join(process.cwd(), 'public', 'data', 'images.json')
+        const images = JSON.parse(await readFile(jsonFilePath, 'utf-8'))
 
         const imageIndex = images.findIndex(image => image.id === body.id)
 
@@ -15,20 +16,20 @@ export default defineEventHandler(async (event) => {
 
             // Supprimer l'entrée du JSON
             images.splice(imageIndex, 1)
-            await writeFile('/data/images.json', JSON.stringify(images, null, 2))
+            await writeFile(jsonFilePath, JSON.stringify(images, null, 2))
 
             // Supprimer le fichier image
             // L'URL est sous la forme "/images/IMG_123456.jpg"
             // On extrait le nom du fichier
             const filename = imageToDelete.url.split('/').pop()
-            const filePath = join('images', filename)
+            const imageFilePath = join(process.cwd(), 'public', 'images', filename)
 
             // Vérifier si le fichier existe avant de le supprimer
-            if (existsSync(filePath)) {
-                await unlink(filePath)
-                console.log(`Fichier supprimé: ${filePath}`)
+            if (existsSync(imageFilePath)) {
+                await unlink(imageFilePath)
+                console.log(`Fichier supprimé: ${imageFilePath}`)
             } else {
-                console.warn(`Fichier introuvable: ${filePath}`)
+                console.warn(`Fichier introuvable: ${imageFilePath}`)
             }
 
             return { success: true }
