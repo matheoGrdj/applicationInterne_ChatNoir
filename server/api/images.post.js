@@ -1,11 +1,42 @@
 import { writeFile, readFile } from 'fs/promises'
+import { join } from 'path'
 
 export default defineEventHandler(async (event) => {
-    const body = await readBody(event)
-    const images = JSON.parse(await readFile('server/data/images.json', 'utf-8'))
+    try {
+        const formData = await readMultipartFormData(event)
+        if (!formData || !formData[0]) {
+            return {
+                success: false,
+                message: 'Aucun fichier reçu'
+            }
+        }
 
-    images.push({ id: `img-${Date.now()}`, url: body.url, remarque: '' })
-    await writeFile('server/data/images.json', JSON.stringify(images, null, 2))
+        const file = formData[0]
+        const fileName = `IMG_${Date.now()}.${file.filename.split('.').pop()}`
+        const filePath = join('public', 'images', fileName)
 
-    return { success: true }
+        // Sauvegarder le fichier
+        await writeFile(filePath, file.data)
+
+        // Ajouter l'entrée dans le JSON
+        const images = JSON.parse(await readFile('public/data/images.json', 'utf-8'))
+        const newImage = {
+            id: `img-${Date.now()}`,
+            url: `/images/${fileName}`,
+            remarque: ''
+        }
+        images.push(newImage)
+        await writeFile('public/data/images.json', JSON.stringify(images, null, 2))
+
+        return {
+            success: true,
+            image: newImage
+        }
+    } catch (error) {
+        console.error('Upload error:', error)
+        return {
+            success: false,
+            message: "Erreur lors de l'upload"
+        }
+    }
 })

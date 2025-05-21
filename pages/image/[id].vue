@@ -43,6 +43,28 @@ const saveRemarque = async () => {
     }
 }
 
+const clearRemarque = async () => {
+    try {
+        const response = await fetch('/api/images', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: image.value.id,
+                remarque: ''
+            })
+        })
+        const data = await response.json()
+        if (data.success) {
+            remarque.value = ''
+            image.value.remarque = ''
+        }
+    } catch (error) {
+        console.error('Error clearing remarque:', error)
+    }
+}
+
 const deleteImage = async () => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
         try {
@@ -85,19 +107,25 @@ const deleteImage = async () => {
                 <!-- Formulaire à droite -->
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <h2 class="text-2xl font-semibold text-gray-800 mb-6">Ajouter une remarque</h2>
-                    <form @submit.prevent="saveRemarque" class="space-y-4">
+                    <form @submit.prevent="saveRemarque" class="space-y-6">
                         <div>
                             <label for="remarque" class="block text-sm font-medium text-gray-700 mb-2">
                                 Votre remarque
                             </label>
-                            <textarea id="remarque" v-model="remarque" rows="4"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            <textarea id="remarque" v-model="remarque" rows="6"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                 placeholder="Écrivez votre remarque ici..."></textarea>
                         </div>
-                        <button type="submit"
-                            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors hover:cursor-pointer">
-                            Enregistrer
-                        </button>
+                        <div class="flex gap-4">
+                            <button type="submit"
+                                class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors hover:cursor-pointer">
+                                Enregistrer
+                            </button>
+                            <button type="button" @click="clearRemarque"
+                                class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors hover:cursor-pointer">
+                                Supprimer la remarque
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -109,8 +137,10 @@ const deleteImage = async () => {
                 </div>
             </div>
 
-            <div v-else class="text-center py-12">
-                <p class="text-gray-600">Chargement...</p>
+            <div v-else class="flex flex-col items-center justify-center py-12">
+                <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4">
+                </div>
+                <p class="text-lg font-medium text-gray-600">Chargement de l'image...</p>
             </div>
         </div>
     </div>

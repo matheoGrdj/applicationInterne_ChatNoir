@@ -11,6 +11,10 @@ const navigateToDetail = (imageId) => {
     router.push(`/image/${imageId}`)
 }
 
+const navigateToAddImage = () => {
+    router.push('/image/add')
+}
+
 onMounted(() => {
     // Fetch images from the API
     fetch('/api/images')
@@ -29,7 +33,7 @@ onMounted(() => {
     <div class="min-h-screen bg-gray-100 py-8 px-4">
         <!-- Bouton d'ajout -->
         <div class="text-center mb-10">
-            <button
+            <button @click="navigateToAddImage"
                 class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transform transition-transform hover:scale-105 hover:cursor-pointer">
                 Ajouter une image
             </button>

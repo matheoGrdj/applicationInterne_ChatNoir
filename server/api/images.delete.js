@@ -1,17 +1,46 @@
-import { readFile, writeFile } from 'fs/promises'
+import { readFile, writeFile, unlink } from 'fs/promises'
+import { join } from 'path'
+import { existsSync } from 'fs'
 
 export default defineEventHandler(async (event) => {
-    const body = await readBody(event)
-    const images = JSON.parse(await readFile('server/data/images.json', 'utf-8'))
+    try {
+        const body = await readBody(event)
+        const images = JSON.parse(await readFile('public/data/images.json', 'utf-8'))
 
-    const imageIndex = images.findIndex(image => image.id === body.id)
+        const imageIndex = images.findIndex(image => image.id === body.id)
 
-    // Si l'image existe, on la supprime
-    if (imageIndex !== -1) {
-        images.splice(imageIndex, 1)
-        await writeFile('server/data/images.json', JSON.stringify(images, null, 2))
-        return { success: true }
-    } else {
-        return { success: false, message: 'Image not found' }
+        // Si l'image existe, on la supprime
+        if (imageIndex !== -1) {
+            const imageToDelete = images[imageIndex]
+
+            // Supprimer l'entrée du JSON
+            images.splice(imageIndex, 1)
+            await writeFile('public/data/images.json', JSON.stringify(images, null, 2))
+
+            // Supprimer le fichier image
+            // L'URL est sous la forme "/images/IMG_123456.jpg"
+            // On extrait le nom du fichier
+            const filename = imageToDelete.url.split('/').pop()
+            const filePath = join('public', 'images', filename)
+
+            // Vérifier si le fichier existe avant de le supprimer
+            if (existsSync(filePath)) {
+                await unlink(filePath)
+                console.log(`Fichier supprimé: ${filePath}`)
+            } else {
+                console.warn(`Fichier introuvable: ${filePath}`)
+            }
+
+            return { success: true }
+        } else {
+            return { success: false, message: 'Image not found' }
+        }
+    } catch (error) {
+        console.error('Error deleting image:', error)
+        return {
+            success: false,
+            message: 'Error deleting image',
+            error: error.message
+        }
     }
 })

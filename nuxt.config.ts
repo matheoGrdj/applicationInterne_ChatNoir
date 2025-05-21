@@ -9,4 +9,8 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  ssr: false,
+  nitro: {
+    preset: "netlify",
+  },
 });
