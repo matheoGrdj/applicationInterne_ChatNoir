@@ -10,7 +10,4 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   ssr: false,
-  nitro: {
-    preset: "netlify",
-  },
 });
