@@ -7,13 +7,11 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  // ssr: false,
+  ssr: false,
+  app: {
+    baseURL: "/",
+  },
   nitro: {
-    publicAssets: [
-      {
-        dir: "public",
-        baseURL: "/",
-      },
-    ],
+    preset: "node-server",
   },
 });
