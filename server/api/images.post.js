@@ -19,14 +19,14 @@ export default defineEventHandler(async (event) => {
         await writeFile(filePath, file.data)
 
         // Ajouter l'entrée dans le JSON
-        const images = JSON.parse(await readFile('public/data/images.json', 'utf-8'))
+        const images = JSON.parse(await readFile('/data/images.json', 'utf-8'))
         const newImage = {
             id: `img-${Date.now()}`,
             url: `/images/${fileName}`,
             remarque: ''
         }
         images.push(newImage)
-        await writeFile('public/data/images.json', JSON.stringify(images, null, 2))
+        await writeFile('/data/images.json', JSON.stringify(images, null, 2))
 
         return {
             success: true,

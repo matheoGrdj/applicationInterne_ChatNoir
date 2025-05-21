@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
         const id = event.context.params.id
 
         // Lire le fichier JSON
-        const images = JSON.parse(await readFile('public/data/images.json', 'utf-8'))
+        const images = JSON.parse(await readFile('/data/images.json', 'utf-8'))
 
         // Trouver l'image correspondante
         const image = images.find(img => img.id === id)
