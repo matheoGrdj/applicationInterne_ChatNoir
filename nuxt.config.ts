@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  ssr: false,
+  // ssr: false,
   app: {
     baseURL: "/",
   },
