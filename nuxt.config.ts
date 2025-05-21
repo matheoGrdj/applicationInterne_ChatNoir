@@ -1,5 +1,3 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
-
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
@@ -10,4 +8,13 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   ssr: false,
+  nitro: {
+    preset: "netlify",
+    publicAssets: [
+      {
+        dir: "public",
+        baseURL: "/",
+      },
+    ],
+  },
 });
