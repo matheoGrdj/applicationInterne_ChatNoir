@@ -5,7 +5,7 @@ import { existsSync } from 'fs'
 export default defineEventHandler(async (event) => {
     try {
         const body = await readBody(event)
-        const jsonFilePath = join(process.cwd(), 'server', 'data', 'images.json')
+        const jsonFilePath = join(process.cwd(), 'data', 'images.json')
         const images = JSON.parse(await readFile(jsonFilePath, 'utf-8'))
 
         const imageIndex = images.findIndex(image => image.id === body.id)

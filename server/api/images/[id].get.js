@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
     try {
         // Récupérer l'ID depuis les paramètres de route
         const id = event.context.params.id
-        const filePath = join(process.cwd(), 'server', 'data', 'images.json')
+        const filePath = join(process.cwd(), 'data', 'images.json')
         const images = JSON.parse(await readFile(filePath, 'utf-8'))
 
         // Trouver l'image correspondante
