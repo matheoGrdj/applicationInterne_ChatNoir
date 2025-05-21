@@ -7,9 +7,8 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  ssr: false,
+  // ssr: false,
   nitro: {
-    preset: "netlify",
     publicAssets: [
       {
         dir: "public",
