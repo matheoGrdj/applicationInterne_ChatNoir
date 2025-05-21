@@ -1,13 +1,15 @@
 services:
   - type: web
-    name: mon-app-nuxt
-    runtime: node
-    buildCommand: npm ci && npm run build
-    startCommand: npm start
+    name: <APP_NAME>
+    env: node
+    # nom de la branche à déployer
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start # (équivalent à node .output/server/index.mjs)
     envVars:
-      - key: NODE_VERSION
-        value: 18
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 1
+      - key: HOST
+        value: 0.0.0.0 # nécessaire pour écoute publique:contentReference[oaicite:4]{index=4}
+      - key: PORT
+        value: 10000 # port par défaut sur Render
+      - key: NITRO_PRESET
+        value: render_com # Nitro preset optimisé pour Render:contentReference[oaicite:5]{index=5}
