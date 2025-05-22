@@ -1,20 +1,12 @@
 [build]
-  command   = "npm run build"
+  command   = "nuxt build"
   publish   = "dist"
-  functions = ".output/server"
 
 [build.environment]
   NODE_ENV     = "production"
   NITRO_PRESET = "netlify"
 
 [[redirects]]
-  # Toutes les requêtes vers /api/... sont redirigées vers la Function Nitro
-  from   = "/api/*"
-  to     = "/.netlify/functions/server/api/:splat"
-  status = 200
-
-[[redirects]]
-  # Spa-fallback
   from   = "/*"
   to     = "/index.html"
   status = 200
