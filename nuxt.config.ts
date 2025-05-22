@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   },
   ssr: true,
   nitro: {
-    preset: "node",
+    preset: "netlify",
     serveStatic: true,
   },
 });
