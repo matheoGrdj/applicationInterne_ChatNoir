@@ -1,27 +1,53 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from '#app'
 
 const router = useRouter()
 const images = ref([])
 const loading = ref(true)
 const error = ref(null)
+let pollingInterval = null
+const POLLING_INTERVAL = 10000 // Vérifier toutes les 10 secondes
 
-// Récupérer toutes les images qui ont des remarques
-onMounted(async () => {
+// Fonction pour récupérer les remarques
+const fetchRemarques = async () => {
     try {
-        loading.value = true
         const response = await fetch('/api/images')
         const data = await response.json()
 
         // Filtrer pour ne garder que les images avec des remarques
-        images.value = data.filter(img => img.remarque && img.remarque.trim() !== '')
-        console.log('Images avec remarques:', images.value)
+        const newImages = data.filter(img => img.remarque && img.remarque.trim() !== '')
+
+        // Vérifier s'il y a de nouvelles remarques
+        if (JSON.stringify(newImages) !== JSON.stringify(images.value)) {
+            console.log('Mise à jour des remarques détectée')
+            images.value = newImages
+        }
+
+        // Si c'est le premier chargement, désactiver l'état de chargement
+        if (loading.value) {
+            loading.value = false
+        }
     } catch (err) {
         console.error('Erreur lors de la récupération des remarques:', err)
         error.value = "Impossible de charger les remarques"
-    } finally {
         loading.value = false
+    }
+}
+
+// Récupérer les remarques au chargement et configurer le polling
+onMounted(() => {
+    // Récupération initiale
+    fetchRemarques()
+
+    // Configurer le polling pour les mises à jour en temps réel
+    pollingInterval = setInterval(fetchRemarques, POLLING_INTERVAL)
+})
+
+// Nettoyer l'intervalle quand le composant est détruit
+onBeforeUnmount(() => {
+    if (pollingInterval) {
+        clearInterval(pollingInterval)
     }
 })
 
@@ -46,7 +72,7 @@ const clearRemarque = async (imageId) => {
 
         const data = await response.json()
         if (data.success) {
-            // Retirer l'image de la liste
+            // Retirer l'image de la liste immédiatement sans attendre le polling
             images.value = images.value.filter(img => img.id !== imageId)
         }
     } catch (err) {
@@ -101,40 +127,71 @@ const goHome = () => {
                     <p class="text-2xl text-gray-600">Aucune remarque pour le moment</p>
                 </div>
 
-                <!-- Liste des remarques -->
+                <!-- Liste des remarques avec animation -->
                 <div v-else class="space-y-6">
-                    <div v-for="image in images" :key="image.id"
-                        class="flex flex-col md:flex-row items-start p-6 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
-                        <!-- Miniature de l'image (agrandie) -->
-                        <div
-                            class="w-full md:w-48 h-48 overflow-hidden mb-4 md:mb-0 md:mr-6 flex-shrink-0 border border-gray-200 rounded-lg">
-                            <img :src="image.url" :alt="image.filename || 'Image'"
-                                class="w-full h-full object-contain" />
-                        </div>
-
-                        <!-- Contenu de la remarque (agrandi) -->
-                        <div class="flex-grow flex flex-col justify-between w-full">
-                            <div class="">
-                                <p class="text-xl text-gray-700 break-words mb-4">{{ image.remarque }}</p>
+                    <transition-group name="list" tag="div" class="space-y-6">
+                        <div v-for="image in images" :key="image.id"
+                            class="flex flex-col md:flex-row items-start p-6 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
+                            <!-- Miniature de l'image (agrandie) -->
+                            <div @click="navigateToImage(image.id)"
+                                class="w-full md:w-48 h-48 overflow-hidden mb-4 md:mb-0 md:mr-6 flex-shrink-0 border border-gray-200 rounded-lg cursor-pointer">
+                                <img :src="image.url" :alt="image.filename || 'Image'"
+                                    class="w-full h-full object-contain" />
                             </div>
 
-                            <!-- Bouton pour supprimer la remarque (plus grand et plus visible) -->
-                            <div class="flex justify-end mt-4">
-                                <button @click="clearRemarque(image.id)"
-                                    class="cursor-pointer group flex items-center px-6 py-3 text-lg font-semibold bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-105 transform">
-                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                        class="h-6 w-6 mr-3 group-hover:scale-110 transition-transform" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    J'ai vu
-                                </button>
+                            <!-- Contenu de la remarque (agrandi) -->
+                            <div class="flex-grow flex flex-col justify-between w-full">
+                                <div @click="navigateToImage(image.id)" class="cursor-pointer">
+                                    <p class="text-xl text-gray-700 break-words mb-4">{{ image.remarque }}</p>
+                                </div>
+
+                                <!-- Bouton pour supprimer la remarque (plus grand et plus visible) -->
+                                <div class="flex justify-end mt-4">
+                                    <button @click="clearRemarque(image.id)"
+                                        class="cursor-pointer group flex items-center px-6 py-3 text-lg font-semibold bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-lg transition-all duration-200 hover:scale-105 transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                            class="h-6 w-6 mr-3 group-hover:scale-110 transition-transform" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        J'ai vu
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </transition-group>
                 </div>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+/* Animation pour les éléments qui apparaissent/disparaissent */
+.list-enter-active,
+.list-leave-active {
+    transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+/* Animation subtile pour indiquer un nouveau contenu */
+@keyframes highlight {
+    0% {
+        background-color: rgba(209, 250, 229, 0.8);
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+.highlight {
+    animation: highlight 2s ease-out;
+}
+</style>
