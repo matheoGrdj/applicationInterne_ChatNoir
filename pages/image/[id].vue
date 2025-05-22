@@ -38,6 +38,7 @@ const saveRemarque = async () => {
         if (data.success) {
             image.value.remarque = remarque.value
         }
+        router.push('/image')
     } catch (error) {
         console.error('Error saving remarque:', error)
     }
@@ -60,6 +61,7 @@ const clearRemarque = async () => {
             remarque.value = ''
             image.value.remarque = ''
         }
+        router.push('/image')
     } catch (error) {
         console.error('Error clearing remarque:', error)
     }
