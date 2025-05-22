@@ -1,6 +1,6 @@
 # filepath: netlify.toml
 [build]
-  command   = "npm run build"
+  command   = "nuxt build"
   publish   = "dist"
 
 [build.environment]
