@@ -1,20 +1,51 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from '#app'
 
 const route = useRoute()
 const router = useRouter()
 const image = ref(null)
 const remarque = ref('')
+const pollingInterval = ref(null)
+const POLLING_INTERVAL = 2000
 
-onMounted(async () => {
+// Vérifier si l'image a été vue
+const hasBeenSeen = computed(() => {
+    return image.value && image.value.vu === true
+})
+
+// Fonction pour récupérer les données de l'image
+const fetchImageData = async () => {
     try {
         const response = await fetch(`/api/images/${route.params.id}`)
         const data = await response.json()
-        image.value = data
+
+        // Si l'état "vu" a changé, mettre à jour l'image
+        if (!image.value || image.value.vu !== data.vu) {
+            console.log('État "vu" mis à jour:', data.vu)
+            image.value = data
+        } else {
+            // Sinon, juste mettre à jour les autres propriétés
+            image.value = data
+        }
         remarque.value = data.remarque
     } catch (error) {
         console.error('Error fetching image:', error)
+    }
+}
+
+onMounted(async () => {
+    // Première récupération des données
+    await fetchImageData()
+
+    // Configurer un polling pour vérifier les mises à jour de l'attribut "vu"
+    pollingInterval.value = setInterval(fetchImageData, POLLING_INTERVAL)
+})
+
+// Nettoyer l'intervalle quand le composant est détruit
+onUnmounted(() => {
+    if (pollingInterval.value) {
+        clearInterval(pollingInterval.value)
     }
 })
 
@@ -31,14 +62,14 @@ const saveRemarque = async () => {
             },
             body: JSON.stringify({
                 id: image.value.id,
-                remarque: remarque.value
+                remarque: remarque.value,
+                vu: false
             })
         })
         const data = await response.json()
         if (data.success) {
             image.value.remarque = remarque.value
         }
-        router.push('/image')
     } catch (error) {
         console.error('Error saving remarque:', error)
     }
@@ -53,7 +84,7 @@ const clearRemarque = async () => {
             },
             body: JSON.stringify({
                 id: image.value.id,
-                remarque: ''
+                remarque: '',
             })
         })
         const data = await response.json()
@@ -93,8 +124,25 @@ const deleteImage = async () => {
 <template>
     <div class="min-h-screen bg-gray-100 py-8 px-4">
         <div class="container mx-auto">
+            <!-- Notification "Vu par la cabine" -->
+            <transition name="fade">
+                <div v-if="hasBeenSeen"
+                    class="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span class="font-medium">La cabine a vu cette remarque !</span>
+                </div>
+            </transition>
+
             <button @click="goBack"
-                class="mb-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg hover:cursor-pointer">
+                class="mb-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg hover:cursor-pointer flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
                 Retour
             </button>
 
@@ -103,6 +151,16 @@ const deleteImage = async () => {
                 <div class="bg-white rounded-xl shadow-lg p-4 flex flex-col items-center">
                     <div class="w-full aspect-square overflow-hidden mb-4">
                         <img :src="image.url" :alt="image.title" class="w-full h-full object-contain" />
+                    </div>
+
+                    <!-- Badge "Vu" -->
+                    <div v-if="hasBeenSeen"
+                        class="mt-4 py-2 px-4 bg-green-100 text-green-700 rounded-full font-medium flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Vu par la cabine
                     </div>
                 </div>
 
@@ -147,3 +205,16 @@ const deleteImage = async () => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+</style>

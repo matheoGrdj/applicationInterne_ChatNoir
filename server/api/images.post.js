@@ -19,7 +19,7 @@
 //             const newImage = {
 //                 id: `img-${Date.now()}`,
 //                 url: `/images/${fileName}`,
-//                 remarque: ''
+//                 remarque: '',
 //             }
 //             images.push(newImage)
 //             await writeFile(jsonPath, JSON.stringify(images, null, 2))
@@ -104,7 +104,8 @@ export default defineEventHandler(async (event) => {
             id: uniqueId,
             url: imageUrl,  // URL locale
             remarque: '',
-            filename: fileName
+            filename: fileName,
+            vu: false
         })
         .select()
         .single()

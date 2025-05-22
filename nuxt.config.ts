@@ -14,6 +14,16 @@ export default defineNuxtConfig({
     preset: "netlify",
     serveStatic: true,
   },
+  app: {
+    head: {
+      title: "Le Chat Noir",
+      meta: [
+        { charset: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+      ],
+      link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+    },
+  },
   modules: ["@nuxtjs/supabase"],
   supabase: {
     url: process.env.SUPABASE_URL,

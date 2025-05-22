@@ -7,7 +7,7 @@ const images = ref([])
 const loading = ref(true)
 const error = ref(null)
 let pollingInterval = null
-const POLLING_INTERVAL = 10000 // Vérifier toutes les 10 secondes
+const POLLING_INTERVAL = 2000
 
 // Fonction pour récupérer les remarques
 const fetchRemarques = async () => {
@@ -66,7 +66,8 @@ const clearRemarque = async (imageId) => {
             },
             body: JSON.stringify({
                 id: imageId,
-                remarque: ''
+                remarque: '',
+                vu: true
             })
         })
 

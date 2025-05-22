@@ -23,10 +23,25 @@ export default defineEventHandler(async (event) => {
         const body = await readBody(event)
         const client = await serverSupabaseClient(event)
 
-        // Mise à jour de la remarque dans la base de données
+        // Préparation des champs à mettre à jour
+        const updateFields = {}
+
+        // Mise à jour de la remarque si elle est fournie
+        if ('remarque' in body) {
+            updateFields.remarque = body.remarque
+        }
+
+        // Mise à jour du statut "vu" si fourni
+        if ('vu' in body) {
+            updateFields.vu = body.vu
+        }
+
+        console.log('Champs à mettre à jour:', updateFields)
+
+        // Mise à jour dans la base de données
         const { data, error } = await client
             .from('images')
-            .update({ remarque: body.remarque })
+            .update(updateFields)
             .eq('id', body.id)
             .select()
 
