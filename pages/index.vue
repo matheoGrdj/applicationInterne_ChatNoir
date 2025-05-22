@@ -46,7 +46,7 @@ onMounted(() => {
                     class="cursor-pointer transform transition-transform hover:scale-105"
                     @click="navigateToDetail(image.id)">
                     <div class="bg-white rounded-xl shadow-lg p-4 flex flex-col items-center">
-                        <div class="w-full aspect-square overflow-hiddenl mb-4">
+                        <div class="w-full aspect-square overflow-hidden rounded-full mb-4">
                             <img :src="image.url" :alt="image.filename" class="w-full h-full object-contain" />
                         </div>
                     </div>
