@@ -3,7 +3,7 @@ import { join } from 'path'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
-    const filePath = join(process.cwd(), 'data', 'images.json')
+    const filePath = join(process.cwd(), 'public', 'data', 'images.json')
     const images = JSON.parse(await readFile(filePath, 'utf-8'))
 
     const imageIndex = images.findIndex(image => image.id === body.id)

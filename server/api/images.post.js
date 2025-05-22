@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
         await writeFile(filePath, file.data)
 
         // Ajouter l'entrée dans le JSON
-        const jsonPath = join(process.cwd(), 'data', 'images.json')
+        const jsonPath = join(process.cwd(), 'public', 'data', 'images.json')
         const images = JSON.parse(await readFile(jsonPath, 'utf-8'))
         const newImage = {
             id: `img-${Date.now()}`,
