@@ -23,15 +23,26 @@ export default defineEventHandler(async (event) => {
         }
 
         // Suppression du fichier local
-        if (imageData.filename) {
-            const imageFilePath = join(process.cwd(), 'public', 'images', imageData.filename)
+        // if (imageData.filename) {
+        //     const imageFilePath = join(process.cwd(), 'public', 'images', imageData.filename)
 
-            // Vérifier si le fichier existe avant de le supprimer
-            if (existsSync(imageFilePath)) {
-                await unlink(imageFilePath)
-                console.log(`Fichier supprimé: ${imageFilePath}`)
-            } else {
-                console.warn(`Fichier introuvable: ${imageFilePath}`)
+        //     // Vérifier si le fichier existe avant de le supprimer
+        //     if (existsSync(imageFilePath)) {
+        //         await unlink(imageFilePath)
+        //         console.log(`Fichier supprimé: ${imageFilePath}`)
+        //     } else {
+        //         console.warn(`Fichier introuvable: ${imageFilePath}`)
+        //     }
+        // }
+
+        if (imageData.filename) {
+            const { error: deleteStorageError } = await client
+                .storage
+                .from('images')
+                .remove([`public/${imageData.filename}`])
+
+            if (deleteStorageError) {
+                console.warn(`Erreur lors de la suppression du fichier:`, deleteStorageError)
             }
         }
 
