@@ -1,6 +1,20 @@
 [build]
-  command = "npm run build && npm run start"
-  publish = ".output"
+  command = "npm run build"
+  publish = ".output/public"
+  functions = ".output/server"
+
+[dev]
+  command = "npm run dev"
+  port = 3000
+
+[context.production.environment]
+  NODE_ENV = "production"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "production"
+
+[context.branch-deploy.environment]
+  NODE_ENV = "production"
 
 [[redirects]]
   from = "/*"
