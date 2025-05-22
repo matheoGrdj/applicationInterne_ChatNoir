@@ -97,7 +97,7 @@ onUnmounted(() => {
 })
 
 const goBack = () => {
-    router.push('/')
+    router.push('/image')
 }
 
 const saveRemarque = async () => {
