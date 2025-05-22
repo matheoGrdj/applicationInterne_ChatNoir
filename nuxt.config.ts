@@ -10,5 +10,6 @@ export default defineNuxtConfig({
   ssr: true,
   nitro: {
     preset: "node",
+    serveStatic: true,
   },
 });
