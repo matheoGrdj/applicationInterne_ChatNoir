@@ -18,7 +18,7 @@ const hasBeenSeen = computed(() => {
 
 // Fonction pour démarrer le polling
 const startPolling = () => {
-    if (!pollingInterval.value) {
+    if (!pollingInterval.value && process.client) {  // Vérifier qu'on est côté client
         console.log('Démarrage du polling')
         pollingInterval.value = setInterval(fetchImageData, POLLING_INTERVAL)
         isPollingActive.value = true

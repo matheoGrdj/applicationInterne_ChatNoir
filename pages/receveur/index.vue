@@ -36,12 +36,15 @@ const fetchRemarques = async () => {
 }
 
 // Récupérer les remarques au chargement et configurer le polling
+// Récupérer les remarques au chargement et configurer le polling
 onMounted(() => {
     // Récupération initiale
     fetchRemarques()
 
     // Configurer le polling pour les mises à jour en temps réel
-    pollingInterval = setInterval(fetchRemarques, POLLING_INTERVAL)
+    if (process.client) {  // Vérifier qu'on est côté client
+        pollingInterval = setInterval(fetchRemarques, POLLING_INTERVAL)
+    }
 })
 
 // Nettoyer l'intervalle quand le composant est détruit
