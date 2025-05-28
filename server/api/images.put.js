@@ -17,6 +17,14 @@ export default defineEventHandler(async (event) => {
                 images[imageIndex].vu = body.vu
             }
 
+            // Mettre à jour le timestamp à chaque modification
+            images[imageIndex].updated_at = new Date().toISOString()
+
+            // S'assurer que created_at existe (pour la rétrocompatibilité)
+            if (!images[imageIndex].created_at) {
+                images[imageIndex].created_at = images[imageIndex].updated_at
+            }
+
             await writeFile(filePath, JSON.stringify(images, null, 2))
             return {
                 success: true,

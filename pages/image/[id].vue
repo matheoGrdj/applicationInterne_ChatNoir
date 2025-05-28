@@ -7,7 +7,7 @@ const router = useRouter()
 const image = ref(null)
 const remarque = ref('')
 const pollingInterval = ref(null)
-const POLLING_INTERVAL = 2000
+const POLLING_INTERVAL = 1000
 const isPollingActive = ref(true)
 const showSaveSuccess = ref(false) // Pour afficher le message de succès
 

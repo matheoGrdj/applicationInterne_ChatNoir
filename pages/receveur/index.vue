@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from '#app'
 
 const router = useRouter()
@@ -9,19 +9,57 @@ const error = ref(null)
 let pollingInterval = null
 const POLLING_INTERVAL = 2000
 
+// Computed pour trier les remarques de la plus ancienne à la plus récente
+const sortedImages = computed(() => {
+    return [...images.value].sort((a, b) => {
+        // Trier par updated_at (plus ancien en premier pour les remarques)
+        // Le tri utilise déjà les millisecondes complètes du timestamp ISO
+        const dateA = new Date(a.updated_at || a.created_at || 0)
+        const dateB = new Date(b.updated_at || b.created_at || 0)
+        return dateA - dateB
+    })
+})
+
+// Fonction pour formater la date avec les secondes pour plus de précision
+const formatDate = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit' // Ajout des secondes
+    })
+}
+
 // Fonction pour récupérer les remarques
 const fetchRemarques = async () => {
     try {
         const response = await fetch('/api/images')
         const data = await response.json()
 
-        // Filtrer pour ne garder que les images avec des remarques
-        const newImages = data.filter(img => img.remarque && img.remarque.trim() !== '')
+        // S'assurer que c'est un tableau et filtrer pour ne garder que les images avec des remarques
+        const allImages = Array.isArray(data) ? data : []
+        const newImages = allImages.filter(img => img.remarque && img.remarque.trim() !== '')
+
+        // Ajouter les timestamps manquants pour la rétrocompatibilité
+        const now = new Date().toISOString()
+        const imagesWithTimestamps = newImages.map(image => {
+            if (!image.created_at) {
+                image.created_at = now
+            }
+            if (!image.updated_at) {
+                image.updated_at = image.created_at
+            }
+            return image
+        })
 
         // Vérifier s'il y a de nouvelles remarques
-        if (JSON.stringify(newImages) !== JSON.stringify(images.value)) {
+        if (JSON.stringify(imagesWithTimestamps) !== JSON.stringify(images.value)) {
             console.log('Mise à jour des remarques détectée')
-            images.value = newImages
+            images.value = imagesWithTimestamps
         }
 
         // Si c'est le premier chargement, désactiver l'état de chargement
@@ -32,10 +70,10 @@ const fetchRemarques = async () => {
         console.error('Erreur lors de la récupération des remarques:', err)
         error.value = "Impossible de charger les remarques"
         loading.value = false
+        images.value = []
     }
 }
 
-// Récupérer les remarques au chargement et configurer le polling
 // Récupérer les remarques au chargement et configurer le polling
 onMounted(() => {
     // Récupération initiale
@@ -117,24 +155,32 @@ const goHome = () => {
                 </div>
 
                 <!-- Message d'erreur -->
-                <div v-else-if="error" class="bg-red-100 text-red-700 p-6 rounded-lg text-xl">
-                    {{ error }}
+                <div v-else-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-lg">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="font-medium">{{ error }}</span>
+                    </div>
                 </div>
 
                 <!-- Aucune remarque -->
-                <div v-else-if="images.length === 0" class="text-center py-12">
+                <div v-else-if="sortedImages.length === 0" class="text-center py-12">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-gray-400 mb-6" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 12H4M8 16l-4-4 4-4M16 16l4-4-4-4" />
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <p class="text-2xl text-gray-600">Aucune remarque pour le moment</p>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Aucune remarque pour le moment</h3>
+                    <p class="text-gray-600">Les remarques apparaîtront ici lorsqu'elles seront ajoutées.</p>
                 </div>
 
                 <!-- Liste des remarques avec animation -->
                 <div v-else class="space-y-6">
                     <transition-group name="list" tag="div" class="space-y-6">
-                        <div v-for="image in images" :key="image.id"
+                        <div v-for="image in sortedImages" :key="image.id"
                             class="flex flex-col md:flex-row items-start p-6 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
                             <!-- Miniature de l'image (agrandie) -->
                             <div @click="navigateToImage(image.id)"
@@ -147,6 +193,15 @@ const goHome = () => {
                             <div class="flex-grow flex flex-col justify-between w-full">
                                 <div @click="navigateToImage(image.id)" class="cursor-pointer">
                                     <p class="text-xl text-gray-700 break-words mb-4">{{ image.remarque }}</p>
+                                    <!-- Affichage de la date de modification avec les secondes -->
+                                    <p class="text-sm text-gray-500 mb-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Modifié le {{ formatDate(image.updated_at) }}
+                                    </p>
                                 </div>
 
                                 <!-- Bouton pour supprimer la remarque (plus grand et plus visible) -->

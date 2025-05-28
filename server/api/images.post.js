@@ -28,13 +28,16 @@ export default defineEventHandler(async (event) => {
         const jsonPath = join(process.cwd(), 'public', 'data', 'images.json')
         const images = JSON.parse(await readFile(jsonPath, 'utf-8'))
 
-        // Créer une nouvelle image avec l'URL de l'API
+        // Créer une nouvelle image avec timestamps
+        const now = new Date().toISOString()
         const newImage = {
             id: uniqueId,
-            url: `/api/images/file/${fileName}`, // Utiliser l'endpoint API
+            url: `/api/images/file/${fileName}`,
             remarque: '',
             filename: fileName,
-            vu: false
+            vu: false,
+            created_at: now,
+            updated_at: now
         }
 
         images.push(newImage)
