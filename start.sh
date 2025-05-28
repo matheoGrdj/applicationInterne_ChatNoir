@@ -14,5 +14,12 @@ pm2 start .output/server/index.mjs \
   --hostname 0.0.0.0 \
   --port 3000
 
+# Récupérer l'IP locale
+LOCAL_IP=$(hostname -I | awk '{print $1}')
+
 echo "✅ Serveur Nuxt démarré et géré par PM2"
+echo "🌐 Application accessible sur :"
+echo "   - Local:   http://localhost:3000"
+echo "   - Réseau:  http://$LOCAL_IP:3000"
+
 pm2 save
