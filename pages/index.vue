@@ -17,7 +17,7 @@ const navigateToReceveur = () => {
     <div class="min-h-screen flex flex-col items-center py-12 px-4">
         <!-- Logo -->
         <div class="mb-16 text-center">
-            <img src="/images/logoChat.png" alt="Le Chat Noir" class="w-64 h-auto mx-auto mb-4"
+            <img src="/images/logoChatPageAccueil.png" alt="Le Chat Noir" class="w-64 h-auto mx-auto mb-4"
                 onerror="this.onerror=null; this.src='/images/logoChat.png'" />
         </div>
 

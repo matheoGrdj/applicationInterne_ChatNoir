@@ -28,10 +28,10 @@ export default defineEventHandler(async (event) => {
         const jsonPath = join(process.cwd(), 'public', 'data', 'images.json')
         const images = JSON.parse(await readFile(jsonPath, 'utf-8'))
 
-        // Créer une nouvelle image avec des propriétés similaires à celles utilisées avec Supabase
+        // Créer une nouvelle image avec l'URL de l'API
         const newImage = {
             id: uniqueId,
-            url: `/images/${fileName}`,
+            url: `/api/images/file/${fileName}`, // Utiliser l'endpoint API
             remarque: '',
             filename: fileName,
             vu: false

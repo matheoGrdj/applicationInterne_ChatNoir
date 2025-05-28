@@ -1,4 +1,5 @@
 import tailwindcss from "@tailwindcss/vite";
+import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
@@ -11,7 +12,7 @@ export default defineNuxtConfig({
   },
   ssr: true,
   nitro: {
-    preset: "netlify",
+    preset: "node-server",
     serveStatic: true,
   },
   app: {
@@ -24,16 +25,16 @@ export default defineNuxtConfig({
       link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
     },
   },
-  modules: ["@nuxtjs/supabase"],
-  supabase: {
-    url: process.env.SUPABASE_URL,
-    key: process.env.SUPABASE_KEY,
-    redirect: false,
-  },
-  runtimeConfig: {
-    public: {
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseKey: process.env.SUPABASE_KEY,
-    },
-  },
+  // modules: ["@nuxtjs/supabase"],
+  // supabase: {
+  //   url: process.env.SUPABASE_URL,
+  //   key: process.env.SUPABASE_KEY,
+  //   redirect: false,
+  // },
+  // runtimeConfig: {
+  //   public: {
+  //     supabaseUrl: process.env.SUPABASE_URL,
+  //     supabaseKey: process.env.SUPABASE_KEY,
+  //   },
+  // },
 });

@@ -1,0 +1,26 @@
+on installe globalement pm2 :
+npm install -g pm2
+
+Démarrage automatique au boot :
+pm2 startup
+# ⬆️ Copie-colle ensuite la commande qu'il te donne (ex: sudo env PATH=... pm2 startup systemd -u tonuser --hp /home/tonuser)
+
+pm2 save
+
+Vérifier si l'app est bien en route :
+pm2 list     # voir le statut
+pm2 logs     # voir les logs
+pm2 restart nuxt-lan    # redémarrer manuellement
+
+Rendre le script éxecutable :
+chmod +x start.sh
+
+le lancer :
+./start.sh
+
+
+trouver l'ip locale :
+
+ipconfig # Windows
+
+ip a | grep inet  # Linux
