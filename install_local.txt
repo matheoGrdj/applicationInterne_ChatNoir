@@ -24,3 +24,7 @@ trouver l'ip locale :
 ipconfig # Windows
 
 ip a | grep inet  # Linux
+
+récupérer github : 
+git clone --single-branch --branch json_back https://github.com/matheoGrdj/applicationInterne_ChatNoir.git
+
