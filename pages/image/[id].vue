@@ -12,6 +12,7 @@ const isPollingActive = ref(true)
 const showSaveSuccess = ref(false) // Pour afficher le message de succès
 const showSeenNotification = ref(false) // Ajouté
 const seenTimeout = ref(null) // Pour stocker le timeout
+const lastSavedRemarque = ref('')
 
 const hasBeenSeen = computed(() => {
     return image.value && image.value.vu === true
@@ -45,18 +46,12 @@ const fetchImageData = async () => {
         const response = await fetch(`/api/images/${route.params.id}`)
         const data = await response.json()
 
-        // Si l'état "vu" a changé, mettre à jour l'image
-        if (!image.value || image.value.vu !== data.vu) {
-            console.log('État "vu" mis à jour:', data.vu)
-            image.value = data
-        } else {
-            // Sinon, juste mettre à jour les autres propriétés
-            image.value = data
-        }
+        image.value = data
 
-        // Ne pas écraser la remarque si l'utilisateur est en train de la modifier
-        if (document.activeElement?.id !== 'remarque') {
+        // Mettre à jour la remarque seulement si elle n'a pas changé localement
+        if (remarque.value === lastSavedRemarque.value) {
             remarque.value = data.remarque
+            lastSavedRemarque.value = data.remarque
         }
     } catch (error) {
         console.error('Error fetching image:', error)
@@ -107,6 +102,8 @@ onMounted(async () => {
     // Première récupération des données
     await fetchImageData()
 
+    lastSavedRemarque.value = remarque.value
+
     // Configurer un polling pour vérifier les mises à jour de l'attribut "vu"
     if (!hasBeenSeen.value) {
         startPolling()
@@ -143,6 +140,7 @@ const saveRemarque = async () => {
         if (data.success) {
             image.value.remarque = remarque.value
             image.value.vu = false
+            lastSavedRemarque.value = remarque.value
 
             // Afficher le message de succès
             showSaveSuccess.value = true
