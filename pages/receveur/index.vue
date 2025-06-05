@@ -9,6 +9,19 @@ const error = ref(null)
 let pollingInterval = null
 const POLLING_INTERVAL = 2000
 
+const oldestId = computed(() => {
+    if (!images.value.length) return null
+    // Filtrer les images avec remarque non vide
+    const withRemarque = images.value.filter(img => img.remarque && img.remarque.trim() !== '')
+    if (!withRemarque.length) return null
+    // Trouver la plus ancienne par updated_at ou created_at
+    return withRemarque.reduce((oldest, img) => {
+        const dateOldest = new Date(oldest.updated_at || oldest.created_at || 0)
+        const dateImg = new Date(img.updated_at || img.created_at || 0)
+        return dateImg < dateOldest ? img : oldest
+    }, withRemarque[0]).id
+})
+
 // Computed pour trier les remarques de la plus ancienne à la plus récente
 const sortedImages = computed(() => {
     return [...images.value].sort((a, b) => {
@@ -111,10 +124,8 @@ const clearRemarque = async (imageId) => {
                 vu: true
             })
         })
-
         const data = await response.json()
         if (data.success) {
-            // Retirer l'image de la liste immédiatement sans attendre le polling
             images.value = images.value.filter(img => img.id !== imageId)
         }
     } catch (err) {
@@ -181,7 +192,7 @@ const goHome = () => {
                 <div v-else class="space-y-6">
                     <transition-group name="list" tag="div" class="space-y-6">
                         <div v-for="image in sortedImages" :key="image.id"
-                            class="flex flex-col md:flex-row items-start p-6 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
+                            :class="['flex flex-col md:flex-row items-start p-6 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors', oldestId === image.id ? 'highlight-remark' : '']">
                             <!-- Miniature de l'image (agrandie) -->
                             <div @click="navigateToImage(image.id)"
                                 class="w-full md:w-48 h-48 overflow-hidden mb-4 md:mb-0 md:mr-6 flex-shrink-0 border border-gray-200 rounded-lg cursor-pointer">
@@ -252,5 +263,43 @@ const goHome = () => {
 
 .highlight {
     animation: highlight 2s ease-out;
+}
+
+@keyframes highlightRemark {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.8), 0 0 0 0 rgba(59, 130, 246, 0.7);
+        background: #f0fff4;
+        transform: scale(1.05) rotate(-2deg);
+    }
+
+    20% {
+        box-shadow: 0 0 40px 10px rgba(34, 197, 94, 0.8), 0 0 80px 20px rgba(59, 130, 246, 0.7);
+        background: #bbf7d0;
+        transform: scale(1.10) rotate(2deg);
+    }
+
+    50% {
+        box-shadow: 0 0 60px 20px rgba(59, 130, 246, 0.7), 0 0 80px 20px rgba(34, 197, 94, 0.8);
+        background: #f0abfc;
+        transform: scale(1.13) rotate(-3deg);
+    }
+
+    80% {
+        box-shadow: 0 0 40px 10px rgba(34, 197, 94, 0.8), 0 0 80px 20px rgba(59, 130, 246, 0.7);
+        background: #bbf7d0;
+        transform: scale(1.10) rotate(2deg);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0), 0 0 0 0 rgba(59, 130, 246, 0);
+        background: #f9fafb;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.highlight-remark {
+    animation: highlightRemark 2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    position: relative;
 }
 </style>

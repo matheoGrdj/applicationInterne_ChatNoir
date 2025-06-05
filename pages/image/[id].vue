@@ -10,8 +10,9 @@ const pollingInterval = ref(null)
 const POLLING_INTERVAL = 1000
 const isPollingActive = ref(true)
 const showSaveSuccess = ref(false) // Pour afficher le message de succès
+const showSeenNotification = ref(false) // Ajouté
+const seenTimeout = ref(null) // Pour stocker le timeout
 
-// Vérifier si l'image a été vue
 const hasBeenSeen = computed(() => {
     return image.value && image.value.vu === true
 })
@@ -64,14 +65,35 @@ const fetchImageData = async () => {
 
 // Watch pour suspendre le polling quand hasBeenSeen est true
 watch(hasBeenSeen, (newValue) => {
-    if (newValue === true) {
-        // Si l'image a été vue, arrêter le polling
-        stopPolling()
+    if (newValue) {
+        showSeenNotification.value = true
+        if (seenTimeout.value) clearTimeout(seenTimeout.value)
+        seenTimeout.value = setTimeout(async () => {
+            try {
+                await fetch('/api/images', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: image.value.id,
+                        vu: false
+                    })
+                })
+            } catch (error) {
+                console.error('Error resetting vu status:', error)
+            }
+
+            showSeenNotification.value = false
+
+            // Rediriger vers /image même si le composant est démonté
+            window.location.href = '/image'
+        }, 3000)
     } else {
-        // Sinon, redémarrer le polling
-        startPolling()
+        showSeenNotification.value = false
+        if (seenTimeout.value) clearTimeout(seenTimeout.value)
     }
-}, { immediate: true })
+})
 
 // Lorsque l'utilisateur commence à éditer le champ remarque
 const onRemarqueEdit = () => {
@@ -94,6 +116,7 @@ onMounted(async () => {
 // Nettoyer l'intervalle quand le composant est détruit
 onUnmounted(() => {
     stopPolling()
+    if (seenTimeout.value) clearTimeout(seenTimeout.value)
 })
 
 const goBack = () => {
@@ -102,6 +125,9 @@ const goBack = () => {
 
 const saveRemarque = async () => {
     try {
+        if (!remarque.value.trim()) {
+            remarque.value = '/'
+        }
         const response = await fetch('/api/images', {
             method: 'PUT',
             headers: {
@@ -184,14 +210,28 @@ const deleteImage = async () => {
     <div class="min-h-screen bg-gray-100 py-8 px-4">
         <div class="container mx-auto">
             <!-- Notification "Vu par la cabine" -->
-            <transition name="fade">
-                <div v-if="hasBeenSeen"
-                    class="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span class="font-medium">La cabine a vu cette remarque !</span>
+            <transition name="toast">
+                <div v-if="showSeenNotification"
+                    class="fixed top-4 right-4 z-50 bg-white border-l-4 border-green-500 rounded-lg shadow-xl p-4 flex items-center max-w-sm">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900">
+                                Remarque vue !
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                La cabine a lu votre remarque
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Progress bar -->
+                    <div class="absolute bottom-0 left-0 h-1 bg-green-500 rounded-bl-lg toast-progress"></div>
                 </div>
             </transition>
 
@@ -212,7 +252,7 @@ const deleteImage = async () => {
                         <img :src="image.url" :alt="image.title" class="w-full h-full object-contain" />
                     </div>
 
-                    <!-- Badge "Vu" -->
+                    <!-- Badge "Vu" (optionnel, si vous voulez le garder) -->
                     <div v-if="hasBeenSeen"
                         class="mt-4 py-2 px-4 bg-green-100 text-green-700 rounded-full font-medium flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
@@ -285,6 +325,41 @@ const deleteImage = async () => {
 </template>
 
 <style scoped>
+/* Animation pour le toast */
+.toast-enter-active {
+    transition: all 0.3s ease-out;
+}
+
+.toast-leave-active {
+    transition: all 0.3s ease-in;
+}
+
+.toast-enter-from {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.toast-leave-to {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+/* Progress bar animation */
+.toast-progress {
+    animation: progress 3s linear forwards;
+}
+
+@keyframes progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+/* Autres animations existantes */
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 0.5s ease, transform 0.5s ease;
